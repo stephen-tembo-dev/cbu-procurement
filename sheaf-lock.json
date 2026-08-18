@@ -1,0 +1,45 @@
+{
+    "files": {
+        "resources/js/utils.js": [
+            "dark-theme"
+        ],
+        "resources/js/components/select.js": [
+            "select"
+        ],
+        "resources/views/components/ui/tab/index.blade.php": [
+            "tabs"
+        ],
+        "resources/views/components/ui/tab/group.blade.php": [
+            "tabs"
+        ],
+        "resources/views/components/ui/tab/panel.blade.php": [
+            "tabs"
+        ]
+    },
+    "helpers": {
+        "popup": [
+            "select"
+        ]
+    },
+    "internalDependencies": {
+        "icon": [
+            "dropdown",
+            "button",
+            "input",
+            "select",
+            "error",
+            "alerts",
+            "switch",
+            "radio"
+        ],
+        "dropdown": [
+            "theme-switcher"
+        ],
+        "button": [
+            "theme-switcher"
+        ],
+        "text": [
+            "select"
+        ]
+    }
+}

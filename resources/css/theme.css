@@ -1,0 +1,23 @@
+/* By Sheaf.dev */
+@theme inline {
+  /* base color variables */
+
+  /* --color-neutral-900: var(--color-neutral-950); */
+
+  /* primary color varibles */
+  --color-primary: var(--color-primary-600);
+  --color-primary-content: var(--color-primary-600);
+  --color-primary-fg: var(--color-primary-50);
+
+  /* radius variables */
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+}
+
+@layer theme {
+  .dark {
+    --color-primary: var(--color-primary-600);
+    --color-primary-content: var(--color-primary-600);
+    --color-primary-fg: var(--color-primary-50);
+  }
+}

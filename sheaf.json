@@ -1,0 +1,89 @@
+{
+    "project_hash": "a7e2f841-3c6d-4b19-9f05-8d4e1c720a3b",
+    "components": {
+        "icon": {
+            "installationTime": 1777113972
+        },
+        "theme-switcher": {
+            "installationTime": 1777113983
+        },
+        "dropdown": {
+            "installationTime": 1777114042
+        },
+        "button": {
+            "installationTime": 1777114059
+        },
+        "link": {
+            "installationTime": 1777114062
+        },
+        "fieldset": {
+            "installationTime": 1777114063
+        },
+        "field": {
+            "installationTime": 1777114065
+        },
+        "input": {
+            "installationTime": 1777114080
+        },
+        "label": {
+            "installationTime": 1777114082
+        },
+        "select": {
+            "installationTime": 1777114095
+        },
+        "popup": {
+            "installationTime": 1777114095
+        },
+        "text": {
+            "installationTime": 1777114106
+        },
+        "tooltip": {
+            "installationTime": 1777114114
+        },
+        "toast": {
+            "installationTime": 1777114119
+        },
+        "card": {
+            "installationTime": 1777114123
+        },
+        "textarea": {
+            "installationTime": 1777114126
+        },
+        "error": {
+            "installationTime": 1777114130
+        },
+        "heading": {
+            "installationTime": 1777114137
+        },
+        "accordion": {
+            "installationTime": 1777114148
+        },
+        "tabs": {
+            "installationTime": 1777114152
+        },
+        "alerts": {
+            "installationTime": 1777114160
+        },
+        "checkbox": {
+            "installationTime": 1777114169
+        },
+        "avatar": {
+            "installationTime": 1777114175
+        },
+        "switch": {
+            "installationTime": 1777114180
+        },
+        "kbd": {
+            "installationTime": 1777114193
+        },
+        "radio": {
+            "installationTime": 1777114201
+        },
+        "description": {
+            "installationTime": 1777114203
+        },
+        "empty": {
+            "installationTime": 1777114209
+        }
+    }
+}

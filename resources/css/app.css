@@ -1,0 +1,71 @@
+@import url("https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap");
+@import "tailwindcss";
+@import "./theme.css";
+@import "../../node_modules/preline/variants.css";
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source "/node_modules/preline/dist/*.js";
+
+@plugin "@tailwindcss/forms";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Filament */
+@import "../../vendor/filament/support/resources/css/index.css";
+@import "../../vendor/filament/actions/resources/css/index.css";
+@import "../../vendor/filament/forms/resources/css/index.css";
+@import "../../vendor/filament/infolists/resources/css/index.css";
+@import "../../vendor/filament/notifications/resources/css/index.css";
+@import "../../vendor/filament/schemas/resources/css/index.css";
+@import "../../vendor/filament/tables/resources/css/index.css";
+@import "../../vendor/filament/widgets/resources/css/index.css";
+
+@variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@theme {
+  --font-sans:
+    "Figtree", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-primary-50: #fbf5ef;
+  --color-primary-100: #f2e1cc;
+  --color-primary-200: #e2c29a;
+  --color-primary-300: #cd9e68;
+  --color-primary-400: #b67c45;
+  --color-primary-500: #99612f;
+  --color-primary-600: #7c4a24;
+  --color-primary-700: #613a1c;
+  --color-primary-800: #492b15;
+  --color-primary-900: #331e0f;
+  --color-primary-950: #1e1209;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+.fi-ta-text {
+  @apply py-px;
+}
+
+.fi-ta-cell {
+  @apply py-3;
+}
+
+.fi-ta-icon {
+  @apply py-px;
+}
+
+.fi-icon.fi-loading-indicator.fi-size-2xl {
+  @apply text-primary-600;
+}
