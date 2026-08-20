@@ -15,7 +15,9 @@
       <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Suppliers</h1>
       <div class="flex flex-wrap gap-1 mt-2">
         @foreach([['admin.users','Users'],['admin.departments','Departments'],['admin.suppliers','Suppliers'],['admin.stock-items','Stock Items'],['admin.budget','Budget']] as [$route,$label])
+        @if(auth()->user()->hasRole('admin') || $route === 'admin.suppliers')
         <a href="{{ route($route) }}" class="px-3 py-1 rounded-lg text-xs font-medium transition-colors {{ $activeSection === last(explode('.',$route)) ? 'bg-emerald-500 text-white' : 'text-gray-600 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-700' }}">{{ $label }}</a>
+        @endif
         @endforeach
       </div>
     </div>

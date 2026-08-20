@@ -7,6 +7,7 @@ use App\Contracts\StockItemRepositoryInterface;
 use App\Models\Procurement\PurchaseOrder;
 use App\Models\Procurement\PurchaseRequisition;
 use App\Models\StockItem;
+use App\Models\StockMovement;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -67,7 +68,13 @@ class StoresService
                     );
                 }
 
-                $this->stockRepo->adjustQuantity($item->stock_item_id, -$item->quantity);
+                $this->adjustStock(
+                    $item->stockItem,
+                    -(float) $item->quantity,
+                    'issued',
+                    $storesOfficer,
+                    $pr,
+                );
             }
 
             $this->auditService->log(
@@ -144,5 +151,100 @@ class StoresService
                 ['status' => 'delivered', 'received_by' => $storesOfficer->name, 'received_at' => $receivedDate->toDateString()]
             );
         });
+    }
+
+    /**
+     * Record one delivery against a PO and increase linked stock by only the
+     * quantities received in this delivery.
+     *
+     * @return bool True when every PO item has now been fully received.
+     */
+    public function recordGoodsReceipt(PurchaseOrder $po, array $receivedQuantities, Carbon $receivedDate, User $storesOfficer): bool
+    {
+        return DB::transaction(function () use ($po, $receivedQuantities, $receivedDate, $storesOfficer) {
+            $po->loadMissing('items.purchaseRequisitionItem.stockItem', 'purchaseRequisition.items.stockItem');
+            $allFulfilled = true;
+
+            foreach ($po->items as $poItem) {
+                $receivedNow = (float) ($receivedQuantities[$poItem->id] ?? 0);
+                $alreadyReceived = (float) ($poItem->quantity_received ?? 0);
+                $remaining = (float) $poItem->quantity - $alreadyReceived;
+
+                if ($receivedNow < 0 || $receivedNow > $remaining) {
+                    throw new RuntimeException("Received quantity is invalid for PO item #{$poItem->id}.");
+                }
+
+                if ($receivedNow > 0) {
+                    $poItem->update([
+                        'quantity_received' => $alreadyReceived + $receivedNow,
+                        'received_date' => $receivedDate->toDateString(),
+                    ]);
+
+                    $requisitionItem = $poItem->purchaseRequisitionItem
+                        ?? $po->purchaseRequisition->items->first(
+                            fn ($item) => $item->description === $poItem->description
+                                && $item->unit_of_measure === $poItem->unit_of_measure
+                        );
+                    $stockItem = $requisitionItem?->stockItem;
+                    if ($stockItem?->is_stocked) {
+                        $this->adjustStock(
+                            $stockItem,
+                            $receivedNow,
+                            'received',
+                            $storesOfficer,
+                            $po->purchaseRequisition,
+                            $po,
+                            $receivedDate,
+                        );
+                    }
+                }
+
+                $poItem->refresh();
+                if ((float) ($poItem->quantity_received ?? 0) < (float) $poItem->quantity) {
+                    $allFulfilled = false;
+                }
+            }
+
+            $po->update([
+                'status' => $allFulfilled ? 'delivered' : 'partially_delivered',
+                'actual_delivery_date' => $allFulfilled ? $receivedDate : $po->actual_delivery_date,
+            ]);
+
+            if ($allFulfilled && $po->purchaseRequisition->status === 'paid') {
+                $po->purchaseRequisition->update(['status' => 'delivered']);
+            }
+
+            return $allFulfilled;
+        });
+    }
+
+    private function adjustStock(
+        StockItem $item,
+        float $delta,
+        string $movementType,
+        User $officer,
+        ?PurchaseRequisition $requisition = null,
+        ?PurchaseOrder $purchaseOrder = null,
+        ?Carbon $occurredAt = null,
+    ): void {
+        $item = StockItem::lockForUpdate()->findOrFail($item->id);
+        $balance = (float) $item->quantity_on_hand + $delta;
+
+        if ($balance < 0) {
+            throw new RuntimeException("Stock adjustment would make '{$item->description}' negative.");
+        }
+
+        $item->update(['quantity_on_hand' => $balance]);
+        StockMovement::create([
+            'stock_item_id' => $item->id,
+            'performed_by' => $officer->id,
+            'purchase_requisition_id' => $requisition?->id,
+            'purchase_order_id' => $purchaseOrder?->id,
+            'movement_type' => $movementType,
+            'quantity_in' => max($delta, 0),
+            'quantity_out' => abs(min($delta, 0)),
+            'balance_after' => $balance,
+            'occurred_at' => $occurredAt ?? now(),
+        ]);
     }
 }

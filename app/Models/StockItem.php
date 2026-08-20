@@ -37,6 +37,11 @@ class StockItem extends Model implements Auditable
         return $this->hasMany(Procurement\PurchaseRequisitionItem::class);
     }
 
+    public function movements()
+    {
+        return $this->hasMany(StockMovement::class)->latest('occurred_at');
+    }
+
     // ── Scopes ─────────────────────────────────────────────────────────────
 
     public function scopeStocked($query)

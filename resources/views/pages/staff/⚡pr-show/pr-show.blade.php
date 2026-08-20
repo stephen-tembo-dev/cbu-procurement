@@ -186,6 +186,9 @@
                 <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Amount</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Received</th>
                 <th class="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Notes</th>
+                @if($pr->status === 'pending_procurement' && auth()->user()->hasRole('procurement'))
+                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-500 dark:text-neutral-400 uppercase tracking-wider">Action</th>
+                @endif
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 dark:divide-neutral-700">
@@ -199,6 +202,13 @@
                   {{ $quote->received_date?->format('d M Y') ?? '—' }}
                 </td>
                 <td class="px-4 py-3 text-gray-500 dark:text-neutral-400">{{ $quote->notes ?? '—' }}</td>
+                @if($pr->status === 'pending_procurement' && auth()->user()->hasRole('procurement'))
+                <td class="px-4 py-3 text-right">
+                  <button wire:click="openEditQuote({{ $quote->id }})" class="inline-flex items-center gap-1 text-xs font-semibold text-violet-600 hover:text-violet-700 dark:text-violet-400">
+                    <ph-pencil-simple weight="bold"></ph-pencil-simple> Edit
+                  </button>
+                </td>
+                @endif
               </tr>
               @endforeach
             </tbody>
@@ -478,11 +488,15 @@
           class="w-full mb-2 py-2.5 bg-violet-500 hover:bg-violet-600 text-white text-sm font-semibold rounded-lg transition-colors">
           <ph-plus weight="bold" class="inline mr-1"></ph-plus> Add Supplier Quote
         </button>
-        @if(! $pr->purchaseOrder)
+        @if(! $pr->purchaseOrder && $pr->supplierQuotes->isNotEmpty())
         <a href="{{ route('po.create', $pr->id) }}"
           class="flex items-center justify-center gap-2 w-full mb-2 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold rounded-lg transition-colors">
           <ph-file-plus weight="bold"></ph-file-plus> Create Purchase Order
         </a>
+        @elseif(! $pr->purchaseOrder)
+        <div class="w-full mb-2 px-4 py-2.5 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-700/30 text-sm text-gray-500 dark:text-neutral-400">
+          Add at least one supplier quote before creating a Purchase Order.
+        </div>
         @else
         <div class="flex items-center gap-2 w-full mb-2 px-4 py-2.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-300 dark:border-emerald-700/60 rounded-lg">
           <ph-check-circle weight="fill" class="text-emerald-500 flex-shrink-0"></ph-check-circle>
@@ -491,10 +505,16 @@
           </span>
         </div>
         @endif
-        <button wire:click="submitToAudit"
-          class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
-          <ph-arrow-right weight="bold" class="inline mr-1"></ph-arrow-right> Submit for Audit
-        </button>
+        @if($pr->purchaseOrder && $pr->attachments->contains('attachment_type', 'quote_evidence'))
+          <button wire:click="submitToAudit"
+            class="w-full py-2.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold rounded-lg transition-colors">
+            <ph-arrow-right weight="bold" class="inline mr-1"></ph-arrow-right> Submit for Audit
+          </button>
+        @else
+          <div class="w-full px-4 py-2.5 rounded-lg border border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-700/30 text-sm text-gray-500 dark:text-neutral-400">
+            {{ ! $pr->purchaseOrder ? 'Create the Purchase Order first.' : 'Upload Quote Evidence before submitting for audit.' }}
+          </div>
+        @endif
         @endif
 
         {{-- Audit actions --}}
@@ -1042,7 +1062,7 @@
     <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="cancelQuote"></div>
     <div class="relative bg-white dark:bg-neutral-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-neutral-700 w-full max-w-md p-6">
 
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">Record Supplier Quote</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">{{ $editingQuoteId ? 'Edit Supplier Quote' : 'Record Supplier Quote' }}</h3>
 
       <div class="space-y-4">
 
@@ -1050,7 +1070,7 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1.5">
             Supplier <span class="text-red-500">*</span>
           </label>
-          <select wire:model="quoteSupplier"
+          <select wire:model="quoteSupplier" @disabled($editingQuoteId)
             class="w-full rounded-lg border border-gray-300 dark:border-neutral-600 bg-white dark:bg-neutral-700 text-gray-900 dark:text-white text-sm px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
             <option value="0">Select supplier…</option>
             @foreach($this->suppliers as $id => $name)
@@ -1092,7 +1112,7 @@
         <button wire:click="saveQuote"
           class="px-5 py-2 text-sm font-semibold text-white bg-violet-500 hover:bg-violet-600 rounded-lg transition-colors"
           wire:loading.attr="disabled">
-          <span wire:loading.remove wire:target="saveQuote">Save Quote</span>
+          <span wire:loading.remove wire:target="saveQuote">{{ $editingQuoteId ? 'Update Quote' : 'Save Quote' }}</span>
           <span wire:loading wire:target="saveQuote">Saving…</span>
         </button>
       </div>

@@ -35,7 +35,7 @@ class WorkflowService
      */
     private const TRANSITIONS = [
         'draft'                  => ['pending_hod'],
-        'pending_hod'            => ['pending_stores', 'rejected'],
+        'pending_hod'            => ['pending_stores', 'pending_bursar', 'rejected'],
         'pending_stores'         => ['issued_from_stores', 'pending_bursar'],
         'pending_bursar'         => ['pending_vc_requisition', 'rejected'],
         'pending_vc_requisition' => ['pending_procurement', 'rejected'],
@@ -81,7 +81,9 @@ class WorkflowService
         $delegation = $this->resolveHodAuthority($pr, $actor);
         $this->requireCommentOnRejection($decision, $comment);
 
-        $nextStatus = $decision === 'approved' ? 'pending_stores' : 'rejected';
+        $nextStatus = $decision === 'approved'
+            ? ($pr->type === 'service' ? 'pending_bursar' : 'pending_stores')
+            : 'rejected';
 
         return $this->recordAndAdvance($pr, $actor, 'hod', $decision, $comment, $nextStatus, $delegation?->hod_user_id);
     }

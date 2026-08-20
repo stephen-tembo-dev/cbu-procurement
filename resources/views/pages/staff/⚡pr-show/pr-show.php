@@ -45,6 +45,7 @@ new class extends Component
 
     // Procurement-specific
     public bool   $showQuoteForm     = false;
+    public ?int   $editingQuoteId    = null;
     public int    $quoteSupplier     = 0;
     public string $quoteAmount       = '';
     public string $quoteDate         = '';
@@ -382,6 +383,18 @@ new class extends Component
             abort(403);
         }
 
+        if (! $pr->purchaseOrder) {
+            $this->flash     = 'Create a Purchase Order before submitting this requisition for audit.';
+            $this->flashType = 'error';
+            return;
+        }
+
+        if (! $pr->attachments()->where('attachment_type', 'quote_evidence')->exists()) {
+            $this->flash     = 'Attach quote evidence before submitting this requisition for audit.';
+            $this->flashType = 'error';
+            return;
+        }
+
         $analysis = app(ProcurementService::class)->getQuoteAnalysis($pr);
 
         if (! $analysis['quote_requirement_met']) {
@@ -407,6 +420,9 @@ new class extends Component
 
     public function openQuoteForm(): void
     {
+        abort_unless(auth()->user()->hasRole('procurement'), 403);
+
+        $this->editingQuoteId = null;
         $this->quoteSupplier = 0;
         $this->quoteAmount   = '';
         $this->quoteDate     = '';
@@ -417,10 +433,13 @@ new class extends Component
     public function cancelQuote(): void
     {
         $this->showQuoteForm = false;
+        $this->editingQuoteId = null;
     }
 
     public function saveQuote(): void
     {
+        abort_unless(auth()->user()->hasRole('procurement'), 403);
+
         $this->validate([
             'quoteSupplier' => 'required|exists:suppliers,id',
             'quoteAmount'   => 'nullable|numeric|min:0',
@@ -429,16 +448,37 @@ new class extends Component
 
         $pr = $this->pr;
 
-        app(ProcurementService::class)->addQuote($pr, [
-            'supplier_id'   => $this->quoteSupplier,
-            'amount'        => $this->quoteAmount ?: null,
-            'received_date' => $this->quoteDate ?: null,
-            'notes'         => $this->quoteNotes ?: null,
-        ]);
+        try {
+            $payload = [
+                'supplier_id'   => $this->quoteSupplier,
+                'amount'        => $this->quoteAmount ?: null,
+                'received_date' => $this->quoteDate ?: null,
+                'notes'         => $this->quoteNotes ?: null,
+            ];
+
+            if ($this->editingQuoteId) {
+                $quote = $pr->supplierQuotes->firstWhere('id', $this->editingQuoteId);
+
+                if (! $quote) {
+                    throw new RuntimeException('The selected quote is no longer available.');
+                }
+
+                app(ProcurementService::class)->updateQuote(
+                    $quote,
+                    $payload,
+                );
+            } else {
+                app(ProcurementService::class)->addQuote($pr, $payload);
+            }
+        } catch (RuntimeException $e) {
+            $this->addError('quoteSupplier', $e->getMessage());
+
+            return;
+        }
 
         unset($this->pr);
         $this->showQuoteForm = false;
-        $this->flash         = 'Quote recorded successfully.';
+        $this->flash         = $this->editingQuoteId ? 'Quote updated successfully.' : 'Quote recorded successfully.';
         $this->flashType     = 'success';
     }
 

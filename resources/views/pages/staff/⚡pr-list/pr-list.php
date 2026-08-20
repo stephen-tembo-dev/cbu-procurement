@@ -9,6 +9,7 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
@@ -37,6 +38,7 @@ new class extends Component implements HasActions, HasSchemas, HasTable
 
         return $table
             ->query($query->latest())
+            ->recordUrl(fn (PurchaseRequisition $record): string => route('requisitions.show', $record))
             ->columns([
                 TextColumn::make('reference_no')
                     ->label('Reference')
@@ -90,7 +92,8 @@ new class extends Component implements HasActions, HasSchemas, HasTable
                     ]),
                 SelectFilter::make('type')
                     ->options(['product' => 'Product', 'service' => 'Service']),
-            ])
+            ], layout: FiltersLayout::Modal)
+            ->filtersTriggerAction(fn (Action $action) => $action->button()->label('Filters'))
             ->actions([
                 Action::make('view')
                     ->label('View')

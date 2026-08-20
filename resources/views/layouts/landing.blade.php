@@ -24,7 +24,6 @@
     else if (isLight && !html.classList.contains("light")) html.classList.add("light");
   </script>
 
-  <script defer src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 </head>
 
 <body class="antialiased bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">

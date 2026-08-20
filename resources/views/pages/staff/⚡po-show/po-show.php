@@ -5,6 +5,7 @@ use App\Models\Procurement\PurchaseOrder;
 use App\Models\Procurement\PurchaseRequisitionItem;
 use App\Models\StockItem;
 use App\Services\ProcurementService;
+use App\Services\StoresService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -124,42 +125,10 @@ new class extends Component
             return;
         }
 
-        $today        = now()->toDateString();
-        $allFulfilled = true;
-
-        foreach ($po->items as $item) {
-            $newQty = (float) ($this->receiveQuantities[$item->id] ?? 0);
-
-            if ($newQty > 0) {
-                $totalReceived = (float) ($item->quantity_received ?? 0) + $newQty;
-                $item->update([
-                    'quantity_received' => $totalReceived,
-                    'received_date'     => $today,
-                ]);
-            }
-
-            $item->refresh();
-            if ((float) $item->quantity_received < (float) $item->quantity) {
-                $allFulfilled = false;
-            }
-        }
-
-        if ($allFulfilled) {
-            $po->update([
-                'status'               => 'delivered',
-                'actual_delivery_date' => $today,
-            ]);
-
-            $pr = $po->purchaseRequisition;
-            if ($pr && $pr->status === 'paid') {
-                app(PurchaseRequisitionRepositoryInterface::class)->updateStatus($pr->id, 'delivered');
-            }
-
-            $message = 'All items received. Purchase Order marked as fully delivered.';
-        } else {
-            $po->update(['status' => 'partially_delivered']);
-            $message = 'Goods receipt recorded. Purchase Order is partially delivered.';
-        }
+        $allFulfilled = app(StoresService::class)->recordGoodsReceipt($po, $this->receiveQuantities, now(), auth()->user());
+        $message = $allFulfilled
+            ? 'All items received. Purchase Order marked as fully delivered.'
+            : 'Goods receipt recorded. Purchase Order is partially delivered.';
 
         // Check for PR items with no stock link — offer stores the chance to catalog them
         $pr = $po->purchaseRequisition;

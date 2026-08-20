@@ -50,6 +50,10 @@ new class extends Component implements HasActions, HasSchemas, HasTable
     public ?int   $reorderingItemId  = null;
     public string $reorderDate       = '';
 
+    // Inventory movement history
+    public bool   $showHistoryModal  = false;
+    public ?int   $historyItemId     = null;
+
     // Flash
     public ?string $flash     = null;
     public string  $flashType = 'success';
@@ -192,6 +196,11 @@ new class extends Component implements HasActions, HasSchemas, HasTable
     private function itemActions(): array
     {
         return [
+            Action::make('history')
+                ->label('History')
+                ->icon('heroicon-o-clock')
+                ->color('gray')
+                ->action(fn (StockItem $record) => $this->openHistory($record->id)),
             Action::make('edit')
                 ->label('Edit')
                 ->icon('heroicon-o-pencil')
@@ -202,6 +211,18 @@ new class extends Component implements HasActions, HasSchemas, HasTable
                 ->color(fn (StockItem $record) => $record->is_active ? 'danger' : 'success')
                 ->action(fn (StockItem $record) => $this->toggleActive($record->id)),
         ];
+    }
+
+    public function openHistory(int $id): void
+    {
+        $this->historyItemId = StockItem::findOrFail($id)->id;
+        $this->showHistoryModal = true;
+    }
+
+    public function closeHistory(): void
+    {
+        $this->showHistoryModal = false;
+        $this->historyItemId = null;
     }
 
     // ── Create / edit ──────────────────────────────────────────────────────

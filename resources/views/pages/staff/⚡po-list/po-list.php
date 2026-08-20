@@ -9,6 +9,7 @@ use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Str;
@@ -33,6 +34,7 @@ new class extends Component implements HasActions, HasSchemas, HasTable
                 PurchaseOrder::with(['supplier', 'purchaseRequisition.department'])
                     ->latest()
             )
+            ->recordUrl(fn (PurchaseOrder $record): string => route('po.show', $record))
             ->columns([
                 TextColumn::make('po_number')
                     ->label('PO Number')
@@ -80,7 +82,8 @@ new class extends Component implements HasActions, HasSchemas, HasTable
                         'partially_delivered' => 'Partially Delivered',
                         'delivered'           => 'Delivered',
                     ]),
-            ])
+            ], layout: FiltersLayout::Modal)
+            ->filtersTriggerAction(fn (Action $action) => $action->button()->label('Filters'))
             ->actions([
                 Action::make('view')
                     ->label('View')

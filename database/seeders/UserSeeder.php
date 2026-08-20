@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
                 'role'          => 'admin',
             ],
             [
-                'name'          => 'Alice Requester',
+                'name'          => 'Shanice Requester',
                 'email'         => 'requester@binarypivot.test',
                 'department_id' => $dept('IT'),
                 'role'          => 'requester',

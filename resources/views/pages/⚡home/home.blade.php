@@ -112,29 +112,45 @@
       x-data="{ shown: false }"
       x-init="requestAnimationFrame(() => shown = true)"
       :class="shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'"
-      class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-24 transition-all duration-700 ease-out"
+      class="relative w-full max-w-6xl mx-auto px-6 sm:px-10 lg:px-16 py-24 sm:py-32 transition-all duration-700 ease-out"
     >
-      <img
-        src="{{ asset('images/bp.png') }}"
-        alt="Copperbelt University crest"
-        class="h-24 w-auto mx-auto mb-10"
-      >
+      <div class="grid items-end gap-14 lg:grid-cols-[1.35fr_0.65fr]">
+        <div class="text-left">
+          <div class="flex items-center gap-4 mb-10">
+            <img src="{{ asset('images/bp.png') }}" alt="Copperbelt University crest" class="h-20 w-auto">
+            <span class="h-px flex-1 max-w-32 bg-primary-300/50"></span>
+          </div>
+          <h1 class="max-w-4xl text-5xl sm:text-6xl lg:text-7xl font-bold text-white leading-[0.98] mb-8 tracking-[-0.035em] text-balance">
+            Procurement that keeps every CBU department moving.
+          </h1>
+          <p class="text-lg sm:text-xl text-primary-100 max-w-2xl mb-10 leading-relaxed">
+            One clear path from a staff request to approval, purchasing, delivery, and accountability.
+          </p>
+          <a href="{{ route('login') }}" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white hover:bg-primary-100 text-primary-900 font-semibold text-base transition-colors">
+            <ph-sign-in weight="bold"></ph-sign-in> Sign In
+          </a>
+        </div>
+        <div class="border-t lg:border-t-0 lg:border-l border-white/20 pt-8 lg:pt-0 lg:pl-10">
+          <p class="text-sm leading-7 text-primary-100">
+            Built for departments that need every requisition to be visible, accountable, and ready for the next decision.
+          </p>
+        </div>
+      </div>
 
-      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.15] mb-6 tracking-tight text-balance">
-        The procurement system for Copperbelt University
-      </h1>
-
-      <p class="text-lg text-primary-200 max-w-xl mx-auto mb-10 leading-relaxed text-balance">
-        Requisitions, approvals, purchase orders, and budgets — one internal system for every department on campus.
-      </p>
-
-      <a
-        href="{{ route('login') }}"
-        class="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-white hover:bg-primary-100 text-primary-900 font-semibold text-base transition-colors"
-      >
-        <ph-sign-in weight="bold"></ph-sign-in>
-        Sign In
-      </a>
+      <div class="mt-20 grid grid-cols-1 sm:grid-cols-3 border-y border-white/15 text-left">
+        <div class="py-5 sm:pr-6">
+          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-300">Staff</div>
+          <p class="mt-1 text-sm leading-6 text-primary-100">Raise clear requests with the documents and budget context approvers need.</p>
+        </div>
+        <div class="py-5 sm:px-6 sm:border-x border-white/15">
+          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-300">Departments</div>
+          <p class="mt-1 text-sm leading-6 text-primary-100">Keep requests moving through the right academic and administrative approvals.</p>
+        </div>
+        <div class="py-5 sm:pl-6">
+          <div class="text-xs font-semibold uppercase tracking-[0.18em] text-primary-300">Stewards</div>
+          <p class="mt-1 text-sm leading-6 text-primary-100">See purchasing, payment, delivery, and accountability in one shared record.</p>
+        </div>
+      </div>
     </div>
   </section>
 

@@ -68,6 +68,53 @@
     </div>
   </div>
 
+  {{-- Inventory history --}}
+  @if($showHistoryModal)
+  @php
+    $historyItem = $historyItemId ? \App\Models\StockItem::with(['movements.performedBy', 'movements.purchaseRequisition', 'movements.purchaseOrder'])->find($historyItemId) : null;
+  @endphp
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" x-data x-on:keydown.escape.window="$wire.closeHistory()">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" wire:click="closeHistory"></div>
+    <div class="relative w-full max-w-3xl max-h-[90vh] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-800">
+      <div class="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5 dark:border-neutral-700">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Inventory history</p>
+          <h2 class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">{{ $historyItem?->description }}</h2>
+          <p class="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+            Current balance: <span class="font-semibold text-gray-900 dark:text-white">{{ number_format((float) ($historyItem?->quantity_on_hand ?? 0), 2) }} {{ $historyItem?->unit_of_measure }}</span>
+          </p>
+        </div>
+        <button wire:click="closeHistory" class="text-gray-400 hover:text-gray-700 dark:hover:text-white"><ph-x weight="bold" class="text-lg"></ph-x></button>
+      </div>
+      <div class="max-h-[65vh] overflow-y-auto">
+        @forelse($historyItem?->movements ?? [] as $movement)
+        <div class="grid grid-cols-[auto_1fr_auto] gap-4 border-b border-gray-100 px-6 py-4 last:border-0 dark:border-neutral-700">
+          <div class="mt-1 flex h-8 w-8 items-center justify-center rounded-lg {{ $movement->movement_type === 'issued' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300' }}">
+            <i class="ph-bold ph-{{ $movement->movement_type === 'issued' ? 'arrow-up-right' : 'arrow-down-left' }}"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ \Illuminate\Support\Str::headline($movement->movement_type) }}</p>
+            <p class="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">
+              {{ $movement->performedBy?->name ?? 'System' }} · {{ $movement->occurred_at->format('d M Y, H:i') }}
+              @if($movement->purchaseRequisition) · {{ $movement->purchaseRequisition->reference_no }} @endif
+              @if($movement->purchaseOrder) · {{ $movement->purchaseOrder->po_number }} @endif
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold {{ (float) $movement->quantity_in > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400' }}">
+              {{ (float) $movement->quantity_in > 0 ? '+' . number_format((float) $movement->quantity_in, 2) : '-' . number_format((float) $movement->quantity_out, 2) }}
+            </p>
+            <p class="mt-0.5 text-xs text-gray-500 dark:text-neutral-400">Balance {{ number_format((float) $movement->balance_after, 2) }}</p>
+          </div>
+        </div>
+        @empty
+        <div class="px-6 py-12 text-center text-sm text-gray-500 dark:text-neutral-400">No receipts or issues have been recorded for this item yet.</div>
+        @endforelse
+      </div>
+    </div>
+  </div>
+  @endif
+
   {{-- Create / Edit Modal --}}
   @if($showModal)
   <div class="fixed inset-0 z-50 flex items-center justify-center p-4"

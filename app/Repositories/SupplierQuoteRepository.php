@@ -22,6 +22,14 @@ class SupplierQuoteRepository extends BaseRepository implements SupplierQuoteRep
             ->get();
     }
 
+    public function existsForRequisitionAndSupplier(int $prId, int $supplierId): bool
+    {
+        return $this->model
+            ->where('purchase_requisition_id', $prId)
+            ->where('supplier_id', $supplierId)
+            ->exists();
+    }
+
     public function findResponded(int $prId): Collection
     {
         return $this->model

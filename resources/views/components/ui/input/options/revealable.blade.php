@@ -14,14 +14,8 @@
     x-bind:aria-label="revealed ? 'Hide password' : 'Show password'"
     x-bind:title="revealed ? 'Hide password' : 'Show password'"
 >     
-    <x-ui.icon 
-        name="eye-slash" 
-        class="hidden [[data-slot-revealed]>&]:inline-flex"
-        aria-hidden="true"
-    />
-    <x-ui.icon 
-        name="eye" 
-        class="inline-flex [[data-slot-revealed]>&]:hidden"
-        aria-hidden="true"
-    />
+    <i class="ph"
+       x-bind:class="revealed ? 'ph-eye-slash' : 'ph-eye'"
+       aria-hidden="true"
+       data-slot="icon"></i>
 </x-ui.input.options.button>

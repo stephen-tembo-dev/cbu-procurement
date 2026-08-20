@@ -28,6 +28,10 @@ class ProcurementService
             throw new RuntimeException('Quotes can only be added when the PR is in procurement review.');
         }
 
+        if ($this->quoteRepo->existsForRequisitionAndSupplier($pr->id, (int) $data['supplier_id'])) {
+            throw new RuntimeException('This supplier already has a quote for this requisition.');
+        }
+
         $quote = $this->quoteRepo->create([
             'purchase_requisition_id' => $pr->id,
             'supplier_id'             => $data['supplier_id'],
@@ -44,6 +48,28 @@ class ProcurementService
         ]);
 
         return $quote;
+    }
+
+    /** Update a recorded supplier quote before the PR leaves procurement review. */
+    public function updateQuote(SupplierQuote $quote, array $data): SupplierQuote
+    {
+        $quote->loadMissing('purchaseRequisition');
+
+        if ($quote->purchaseRequisition->status !== 'pending_procurement') {
+            throw new RuntimeException('Quotes can only be edited while the PR is in procurement review.');
+        }
+
+        $allowedFields = ['amount', 'received_date', 'supplier_contacted', 'contact_evidence_path', 'notes'];
+        $payload = array_intersect_key($data, array_flip($allowedFields));
+
+        $updated = $this->quoteRepo->update($quote->id, $payload);
+
+        $this->auditService->log(PurchaseRequisition::class, $quote->purchase_requisition_id, 'quote_updated', [], [
+            'quote_id' => $quote->id,
+            'amount' => $updated->amount,
+        ]);
+
+        return $updated;
     }
 
     /**
@@ -86,6 +112,10 @@ class ProcurementService
         $poAllowedStatuses = ['pending_procurement', 'pending_vc_payment', 'pending_payment'];
         if (! in_array($pr->status, $poAllowedStatuses, true)) {
             throw new RuntimeException('A Purchase Order can only be raised during procurement or payment stages.');
+        }
+
+        if ($pr->status === 'pending_procurement' && $this->quoteRepo->findByRequisition($pr->id)->isEmpty()) {
+            throw new RuntimeException('Add at least one supplier quote before creating a Purchase Order.');
         }
 
         return DB::transaction(function () use ($pr, $supplierId, $items, $actor, $expectedDeliveryDate) {

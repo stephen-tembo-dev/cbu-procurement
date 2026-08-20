@@ -38,7 +38,7 @@ new class extends Component implements HasActions, HasSchemas, HasTable
 
     public function mount(): void
     {
-        abort_unless(auth()->user()->hasRole('admin'), 403);
+        abort_unless(auth()->user()->can('suppliers.manage'), 403);
     }
 
     public function table(Table $table): Table

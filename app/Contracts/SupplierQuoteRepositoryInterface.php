@@ -9,6 +9,9 @@ interface SupplierQuoteRepositoryInterface extends BaseRepositoryInterface
 {
     public function findByRequisition(int $prId): Collection;
 
+    /** Check whether a supplier already has a quote recorded against a requisition. */
+    public function existsForRequisitionAndSupplier(int $prId, int $supplierId): bool;
+
     /** Quotes where the supplier actually responded (amount is not null). */
     public function findResponded(int $prId): Collection;
 

@@ -31,6 +31,7 @@ new class extends Component
         $this->items = $pr->items
             ->filter(fn ($item) => ! $item->isFullyIssued())
             ->map(fn ($item) => [
+                'purchase_requisition_item_id' => $item->id,
                 'description'     => $item->description,
                 'quantity'        => (string) $item->unfulfilledQuantity(),
                 'unit_of_measure' => $item->unit_of_measure ?? '',
@@ -96,6 +97,7 @@ new class extends Component
 
         try {
             $itemsData = array_map(fn ($i) => [
+                'purchase_requisition_item_id' => $i['purchase_requisition_item_id'],
                 'description'     => $i['description'],
                 'quantity'        => (float) $i['quantity'],
                 'unit_of_measure' => $i['unit_of_measure'] ?: null,
